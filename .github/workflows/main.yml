@@ -38,3 +38,14 @@ jobs:
 
       - name: Build de l'application
         run: npm run build
+
+      - name: Déploiement Netlify (Production)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './front/build'
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }} # Personal access tokens
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }} # project-details
