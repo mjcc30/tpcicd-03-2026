@@ -29,3 +29,9 @@ jobs:
     
       - name: Installation des dépendances
         run: npm install
+
+      - name: Tests Unitaires
+        run: npm run test-unit
+
+      - name: Tests Fonctionnels
+        run: npm run test-functional
