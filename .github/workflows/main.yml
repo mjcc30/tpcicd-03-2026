@@ -2,9 +2,11 @@ name: Main Workflow
 
 on:
   push:
-    branches: [ 'tp-16-0' ]
+    branches:
+      - tp-16-03
   pull_request:
-    branches: [ 'tp-16-0' ]
+    branches:
+      - tp-16-03
 
 jobs:
     test:
