@@ -1,18 +1,31 @@
-name: Main Workflow
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
-      - tp-16-03
+      - tp-06-03
   pull_request:
     branches:
-      - tp-16-03
+      - tp-06-03
 
 jobs:
-    test:
-        runs-on: ubuntu-latest
+  buil:
+    name: Build frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front
 
-        steps:
-        - uses: actions/checkout@v3
-        - name: Run a one-line script
-          run: echo Hello, world!
+    steps:
+      - name: Checkout du commit
+        uses: actions/checkout@v4
+      
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: './front/package-lock.json'
+    
+      - name: Installation des dépendances
+        run: npm install
