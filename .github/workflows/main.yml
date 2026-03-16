@@ -1,0 +1,16 @@
+name: Main Workflow
+
+on:
+  push:
+    branches: [ 'tp-16-0' ]
+  pull_request:
+    branches: [ 'tp-16-0' ]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v3
+        - name: Run a one-line script
+          run: echo Hello, world!
