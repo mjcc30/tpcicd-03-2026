@@ -3,10 +3,10 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - tp-06-03
+      - tp-16-03
   pull_request:
     branches:
-      - tp-06-03
+      - tp-16-03
 
 jobs:
   buil:
