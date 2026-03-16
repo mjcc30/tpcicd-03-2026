@@ -1,4 +1,2 @@
 .gitlab-ci.yml
 compose.yml
-*.pdf
-back/
