@@ -38,7 +38,7 @@ jobs:
 
       - name: Build de l'application
         run: npm run build
-        
+
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3.0
         with:
@@ -49,3 +49,36 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+
+  backend-ci-cd:
+    name: Backend CI/CD
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+      
+      - name: Configuration de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: './back/package-lock.json'
+
+      - name: Installation des dépendances
+        run: npm install
+
+      - name: Tests Unitaires
+        run: npm run test-unit
+
+      - name: Tests Fonctionnels
+        run: npm run test-functional
+
+      - name: Authentification Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
