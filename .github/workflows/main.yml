@@ -90,3 +90,6 @@ jobs:
 
       - name: Build Image et Push vers Google Container Registry
         run: gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.CLOUD_RUN_SERVICE_NAME }} .
+
+      - name: Déploiement Cloud Run (Production)
+        run: gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE_NAME }} --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.CLOUD_RUN_SERVICE_NAME }} --region ${{ secrets.GCP_REGION }} --platform managed --allow-unauthenticated
