@@ -1,0 +1,25 @@
+  stage: build
+  image:
+    name: node:22
+  cache:
+    - key: next_cache-$CI_COMMIT_REF_SLUG
+      fallback_keys:
+        - next_cache-$CI_DEFAULT_BRANCH
+      paths:
+        - node_modules/
+        - .next/cache/
+        - .next/standalone/ # used for build only. see https://nextjs.org/docs/app/api-reference/next-config-js/output#automatically-copying-traced-files
+        - .next/static/ # used for css. see https://github.com/vercel/next.js/issues/50931
+      policy: pull-push
+  script:
+    # verify if cache with node_modules is available; push it otherwise
+    - |
+      if [[ ! -d "node_modules" ]]; then
+        npm install
+      fi
+    - npx next build
+
+# Jobs
+next_build:development:
+  extends: .next_build
+
