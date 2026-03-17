@@ -1,3 +1,9 @@
+
+stages:
+  - build
+
+# Extends
+.next_build:
   stage: build
   image:
     name: node:22
