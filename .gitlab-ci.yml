@@ -1,0 +1,12 @@
+image: node:22
+
+include:
+  - front/.front-ci.yml
+  - back/.back-ci.yml
+
+stages:
+  - install
+  - test
+  - build
+  - staging
+  - production

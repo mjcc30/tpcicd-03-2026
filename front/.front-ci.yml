@@ -1,0 +1,70 @@
+# --- CONFIGURATION DE BASE FRONT ---
+.front_base:
+  variables:
+    APP_DIR: front
+  before_script:
+    - cd $APP_DIR
+  cache:
+    key:
+      files:
+        - $APP_DIR/package-lock.json # Isole le cache pour le front
+    paths:
+      - $APP_DIR/node_modules
+    policy: pull
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main"
+      changes:
+        - front/**/* # Ne lance le CI que si le front est modifié
+
+# --- JOBS ---
+npm_install:front:
+  extends: .front_base
+  stage: install
+  cache:
+    policy: pull-push
+  script:
+    - npm ci # Préférable à npm install en CI
+
+npm_unit_test:front:
+  extends: .front_base
+  stage: test
+  script:
+    - npm run test-unit
+
+npm_functional_test:front:
+  extends: .front_base
+  stage: test
+  script:
+    - npm run test-functional
+
+npm_build:front:
+  extends: .front_base
+  stage: build
+  script: 
+    - npm run build
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - front/build
+
+deploy_staging:front:
+  extends: .front_base
+  stage: staging
+  script: 
+    - echo "deploy front to staging"
+
+deploy_production:front:
+  extends: .front_base
+  stage: production
+  before_script:
+    # On vérifie que les variables d'environnement nécessaires
+    - if[ -z "$NETLIFY_AUTH_TOKEN" ]; then echo "ERREUR - NETLIFY_AUTH_TOKEN est vide !"; exit 1; fi
+    - if[ -z "$NETLIFY_SITE_ID" ]; then echo "ERREUR - NETLIFY_SITE_ID est vide !"; exit 1; fi
+  script:
+    - npx netlify-cli deploy --dir=build --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --prod
+  rules:
+    # On doit redéfinir la règle car on ajoute 'when: manual'
+    - if: $CI_COMMIT_REF_NAME == "main"
+      changes:
+        - front/**/*
+      when: manual
