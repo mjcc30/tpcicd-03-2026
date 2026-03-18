@@ -1,55 +1,57 @@
+# --- CONFIGURATION DE BASE BACK ---
+.back_base:
+  image: node:22
+  tags:
+    - node
+  variables:
+    APP_DIR: back
+  before_script:
+    - cd $APP_DIR
+  cache:
+    key: $APP_DIR-cache-$CI_COMMIT_REF_SLUG
+    paths:
+      - $APP_DIR/node_modules
+    policy: pull
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main"
+      changes:
+        - back/**/* # Ne lance le CI que si le front est modifié
+
 npm_install:back:
   stage: install
   extends: 
-    - .ancre
+    - .back_base
   cache:
-    key: back-cache-$CI_COMMIT_REF_SLUG
-    paths:
-    - back/node_modules
     policy: pull-push
   script:
-    - cd back
     - npm install
 
 npm_unit_test:back:
   stage: test
   extends: 
-   - .ancre
-  cache:
-    key: back-cache-$CI_COMMIT_REF_SLUG
-    paths:
-    - back/node_modules
-    policy: pull
+   - .back_base
   script:
-    - cd back
     - npm run test-unit
 
 npm_functional_test:back:
   stage: test
   extends: 
-    - .ancre
-  cache:
-    key: back-cache-$CI_COMMIT_REF_SLUG
-    paths:
-    - back/node_modules
-    policy: pull
+    - .back_base
   script:
-    - cd back
     - npm run test-functional
 
 
 deploy_staging:back:
   stage: staging
   extends:
-    - .ancre
-  script: 
-    - cd back
+    - .back_base
+  script:
     - echo "deploy back to staging"
 
 deploy_production:back:
   stage: production
   extends:
-    - .ancre
+    - .back_base
   image: google/cloud-sdk:alpine
   script: 
     - cd back
@@ -58,4 +60,8 @@ deploy_production:back:
     - gcloud config set project $GCP_PROJECT_ID
     - gcloud builds submit --tag gcr.io/$GCP_PROJECT_ID/$CLOUD_RUN_SERVICE_NAME .
     - gcloud run deploy $CLOUD_RUN_SERVICE_NAME --image gcr.io/$GCP_PROJECT_ID/$CLOUD_RUN_SERVICE_NAME --region $GCP_REGION --platform managed --allow-unauthenticated
-  when: manual
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main"
+      changes:
+        - back/**/* # Ne lance le CI que si le front est modifié
+      when: manual

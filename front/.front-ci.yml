@@ -1,53 +1,50 @@
+# --- CONFIGURATION DE BASE FRONT ---
+.front_base:
+  image: node:22
+  tags:
+    - node
+  variables:
+    APP_DIR: front
+  before_script:
+    - cd $APP_DIR
+  cache:
+    key: $APP_DIR-cache-$CI_COMMIT_REF_SLUG
+    paths:
+      - $APP_DIR/node_modules
+    policy: pull
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main"
+      changes:
+        - front/**/* # Ne lance le CI que si le front est modifié
+
 npm_install:front:
   stage: install
   extends: 
-    - .ancre
+    - .front_base
   cache:
-    key: front-cache-$CI_COMMIT_REF_SLUG 
-    paths:
-    - front/node_modules
     policy: pull-push
   script:
-    - cd front
     - npm install
 
 npm_unit_test:front:
   stage: test
   extends: 
-    - .ancre
-  cache:
-    key: front-cache-$CI_COMMIT_REF_SLUG 
-    paths:
-    - front/node_modules
-    policy: pull
+    - .front_base
   script:
-    - cd front
     - npm run test-unit
 
 npm_functional_test:front:
   stage: test
   extends: 
-    - .ancre
-  cache:
-    key: front-cache-$CI_COMMIT_REF_SLUG 
-    paths:
-    - front/node_modules
-    policy: pull
+    - .front_base
   script:
-    - cd front
     - npm run test-functional
 
 npm_build:front:
   stage: build
   extends:
-    - .ancre
-  cache:
-    key: front-cache-$CI_COMMIT_REF_SLUG 
-    paths:
-    - front/node_modules
-    policy: pull
-  script: 
-    - cd front
+    - .front_base
+  script:
     - npm run build
   artifacts:
     expire_in: 1 hour
@@ -57,16 +54,19 @@ npm_build:front:
 deploy_staging:front:
   stage: staging
   extends:
-    - .ancre
-  script: 
-    - cd front
+    - .front_base
+  script:
     - echo "deploy front to staging"
 
 deploy_production:front:
   stage: production
   extends:
-    - .ancre
-  script: 
-    - cd front
+    - .front_base
+  script:
     - npx netlify-cli deploy --dir=build --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --prod
-  when: manual
+  rules:
+    # On doit redéfinir la règle car on ajoute 'when: manual'
+    - if: $CI_COMMIT_REF_NAME == "main"
+      changes:
+        - front/**/*
+      when: manual
