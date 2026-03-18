@@ -1,62 +1,61 @@
-# --- CONFIGURATION DE BASE BACK ---
-.back_base:
-  variables:
-    APP_DIR: back
-  before_script:
-    - cd $APP_DIR
-  cache:
-    key:
-      files:
-        - $APP_DIR/package-lock.json # Isole le cache pour le back
-    paths:
-      - $APP_DIR/node_modules
-    policy: pull
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "main"
-      changes:
-        - back/**/* # Ne lance le CI que si le back est modifié
-
-# --- JOBS ---
 npm_install:back:
-  extends: .back_base
   stage: install
+  extends: 
+    - .ancre
   cache:
+    key: back-cache-$CI_COMMIT_REF_SLUG
+    paths:
+    - back/node_modules
     policy: pull-push
   script:
-    - npm ci
+    - cd back
+    - npm install
 
 npm_unit_test:back:
-  extends: .back_base
   stage: test
+  extends: 
+   - .ancre
+  cache:
+    key: back-cache-$CI_COMMIT_REF_SLUG
+    paths:
+    - back/node_modules
+    policy: pull
   script:
+    - cd back
     - npm run test-unit
 
 npm_functional_test:back:
-  extends: .back_base
   stage: test
+  extends: 
+    - .ancre
+  cache:
+    key: back-cache-$CI_COMMIT_REF_SLUG
+    paths:
+    - back/node_modules
+    policy: pull
   script:
+    - cd back
     - npm run test-functional
 
+
 deploy_staging:back:
-  extends: .back_base
   stage: staging
+  extends:
+    - .ancre
   script: 
+    - cd back
     - echo "deploy back to staging"
 
 deploy_production:back:
-  # On n'étend pas .back_base car l'image n'est pas Node et on n'a pas besoin du cache NPM
   stage: production
+  extends:
+    - .ancre
   image: google/cloud-sdk:alpine
-  before_script:
+  script: 
     - cd back
     - echo $GCP_SERVICE_ACCOUNT_KEY | base64 -d > gcloud-api-key.json
-  script: 
     - gcloud auth activate-service-account --key-file gcloud-api-key.json
     - gcloud config set project $GCP_PROJECT_ID
     - gcloud builds submit --tag gcr.io/$GCP_PROJECT_ID/$CLOUD_RUN_SERVICE_NAME .
     - gcloud run deploy $CLOUD_RUN_SERVICE_NAME --image gcr.io/$GCP_PROJECT_ID/$CLOUD_RUN_SERVICE_NAME --region $GCP_REGION --platform managed --allow-unauthenticated
-  rules:
-    - if: $CI_COMMIT_REF_NAME == "main"
-      changes:
-        - back/**/*
-      when: manual
+  when: manual
