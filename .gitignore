@@ -1,1 +1,4 @@
-.gitlab-ci.yml
+
+local_runner/.runner_system_id
+local_runner/config.toml
+local_runner/runner.log
